@@ -10,8 +10,9 @@ const web = new WebClient(token);
 module.exports.githubReviewRequestWebhook = function (event, context, callback) {
   const pullRequestEvent = JSON.parse(event.body);
   if (pullRequestEvent.action === "review_requested") {
-    const pullRequestUser = pullRequestEvent.pull_request.user.login;
-    const pullRequestUserHtmlUrl = pullRequestEvent.pull_request.user.html_url;
+    const reviewee = pullRequestEvent.pull_request.user.login;
+    const reviewee_icon_url = pullRequestEvent.pull_request.user.avatar_url;
+    const reviewee_html_url = pullRequestEvent.pull_request.user.html_url;
     const html_url = pullRequestEvent.pull_request.html_url;
     const reviewers = (
       pullRequestEvent.pull_request.requested_reviewers
@@ -24,7 +25,9 @@ module.exports.githubReviewRequestWebhook = function (event, context, callback) 
       reviewers
         .map(reviewer => web.chat.postMessage({
           channel: `@${reviewer}`,
-          text: `<${pullRequestUserHtmlUrl}|@${pullRequestUser}>님에게\n*${title}*\n${html_url}\n풀리퀘스트에 대한 리뷰 요청이 들어왔습니다.\n`
+          username: `${reviewee}님의 리뷰 요청`,
+          icon_url: reviewee_icon_url,
+          text: `*${title}*\n${html_url}\n풀리퀘스트에 대한 리뷰 요청이 들어왔습니다.\n`
         }))
     );
 
