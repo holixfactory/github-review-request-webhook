@@ -19,14 +19,12 @@ module.exports.githubReviewRequestWebhook = function (event, context, callback) 
         .filter(githubUser => githubUser in githubSlackUserMap)
         .map(githubUser => githubSlackUserMap[githubUser])
     );
-    console.log(html_url);
-    console.log(githubSlackUserMap);
-    console.log(githubSlackUserMap);
+    const title = pullRequestEvent.pull_request.title;
     const postMessages = (
       reviewers
         .map(reviewer => web.chat.postMessage({
           channel: `@${reviewer}`,
-          text: `<${pullRequestUserHtmlUrl}|@${pullRequestUser}>님에게\n${html_url}\n풀리퀘스트에 대한 리뷰 요청이 들어왔습니다.`
+          text: `<${pullRequestUserHtmlUrl}|@${pullRequestUser}>님에게\n*${title}*\n${html_url}\n풀리퀘스트에 대한 리뷰 요청이 들어왔습니다.\n`
         }))
     );
 
@@ -35,12 +33,11 @@ module.exports.githubReviewRequestWebhook = function (event, context, callback) 
         statusCode: 200,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          "message": "PR nofication sended to send "
+          "message": "PR nofication sended to reviewers"
         })
       });
     });
   }
-  console.log('JavaScript HTTP trigger function processed a request.');
   callback(null, {
     statusCode: 404,
     headers: { 'Content-Type': 'application/json' },
