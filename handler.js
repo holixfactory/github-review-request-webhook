@@ -31,7 +31,7 @@ module.exports.githubReviewRequestWebhook = function (event, context, callback) 
         }))
     );
 
-    Promise.all(postMessages).then(() => {
+    return Promise.all(postMessages).then(() => {
       callback(null, {
         statusCode: 200,
         headers: { 'Content-Type': 'application/json' },
