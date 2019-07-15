@@ -7,8 +7,10 @@ const web = new WebClient(token);
 
 /* eslint-disable no-param-reassign */
 
-module.exports.githubReviewRequestWebhook = function (event, context, callback) {
+module.exports.githubReviewRequestWebhook = async function (event, context, callback) {
   const pullRequestEvent = JSON.parse(event.body);
+  console.log(githubSlackUserMap);
+  console.log(pullRequestEvent.action);
   if (pullRequestEvent.action === "review_requested") {
     const reviewee = pullRequestEvent.pull_request.user.login;
     const reviewee_icon_url = pullRequestEvent.pull_request.user.avatar_url;
@@ -20,11 +22,19 @@ module.exports.githubReviewRequestWebhook = function (event, context, callback) 
         .filter(githubUser => githubUser in githubSlackUserMap)
         .map(githubUser => githubSlackUserMap[githubUser])
     );
+    console.log(reviewers);
+    const userList = await web.users.list();
+    const reviewerIds = reviewers.map(
+      reviewer => userList.members.find(
+        member => member.real_name === reviewer
+      ).id
+    );
+    console.log(reviewerIds);
     const title = pullRequestEvent.pull_request.title;
     const postMessages = (
-      reviewers
-        .map(reviewer => web.chat.postMessage({
-          channel: `@${reviewer}`,
+      reviewerIds
+        .map(reviewerId => web.chat.postMessage({
+          channel: reviewerId,
           username: `${reviewee}님의 리뷰 요청`,
           icon_url: reviewee_icon_url,
           text: `*${title}*\n${html_url}\n풀리퀘스트에 대한 리뷰 요청이 들어왔습니다.\n`
